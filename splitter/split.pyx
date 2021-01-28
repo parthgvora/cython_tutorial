@@ -5,11 +5,13 @@ import numpy as np
 from libcpp.unordered_map cimport unordered_map
 from cython.operator import dereference, postincrement
 
+from cython.parallel import prange
+
 # Computes the gini score for a split
 # 0 < t < len(y)
 @cython.boundscheck(False) #Deactivate bounds checking
 @cython.wraparound(False) #Deactivate negative indexing
-cpdef double score(double[:] y, int t): #nogil:
+cdef double score(double[:] y, int t) nogil:
     cdef double length = y.shape[0]
     cdef double left_gini = 1.0
     cdef double right_gini = 1.0
@@ -67,8 +69,8 @@ cpdef double score(double[:] y, int t): #nogil:
 @cython.wraparound(False) #Deactivate negative indexing
 cpdef score_matrix(double[:, :] X, double[:] y, double node_impurity):
 
-    cdef n_samples = X.shape[0]
-    cdef proj_dims = X.shape[1]
+    cdef int n_samples = X.shape[0]
+    cdef int proj_dims = X.shape[1]
     cdef int i = 0
     cdef int j = 0
     cdef long temp_int = 0;
@@ -94,7 +96,7 @@ cpdef score_matrix(double[:, :] X, double[:] y, double node_impurity):
             temp_int = idx_view[i]
             y_sort_view[i] = y[temp_int]
 
-        for i in range(1, n_samples - 1):
+        for i in prange(1, n_samples - 1, nogil=True):
             Q_view[i, j] = score(y_sort_view, i)
 
     return Q
