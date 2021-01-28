@@ -16,12 +16,12 @@ y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1], dtype=np.float64)
 spl1 = ObliqueSplitter(X, y, proj_dims, density, random_state)
 
 for i in range(1, 10):
-    score1 = spl1.score(y, i)
-    score2 = score(y, i, 10)
+    s1 = spl1.score(y, i)
+    s2 = score(y, i)
 
-    print(score1, score2)
-
+    print(s1, s2)
 """
+
 n = 10000
 spos = 5000
 trials = 10
@@ -30,22 +30,22 @@ sporf_time = 0
 cython_time = 0
 for i in range(trials):
     X = rng.rand(n, n)
-    y = rng.randint(spos, size=n)
+    y = rng.randint(20, size=n)
     y = np.array(y, dtype=np.float64)
 
     spl1 = ObliqueSplitter(X, y, proj_dims, density, random_state)
     t1 = time()
-    score1 = spl1.score(y, spos)
+    s1 = spl1.score(y, spos)
     t2 = time()
     sporf_time += (t2 - t1)
 
     t1 = time()
-    score2 = score(y, spos)
+    s2 = score(y, spos)
     t2 = time()
     cython_time += (t2 - t1)
 
-    print("SPORF  score: ", score1)
-    print("Cython score: ", score2)
+    print("SPORF  score: ", s1)
+    print("Cython score: ", s2)
 
 print("SPORF time :", sporf_time/trials)
 print("Cython time:", cython_time/trials)
