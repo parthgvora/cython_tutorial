@@ -1,7 +1,6 @@
 cimport cython
 
 import numpy as np
-DTYPE = np.float64
 
 from libcpp.unordered_map cimport unordered_map
 from cython.operator import dereference, postincrement
@@ -10,7 +9,7 @@ from cython.operator import dereference, postincrement
 # 0 < t < len(y)
 @cython.boundscheck(False) #Deactivate bounds checking
 @cython.wraparound(False) #Deactivate negative indexing
-cpdef double score2(double[:] y, int t) nogil:
+cpdef double score(double[:] y, int t): #nogil:
     cdef double length = y.shape[0]
     cdef double left_gini = 1.0
     cdef double right_gini = 1.0
@@ -32,6 +31,8 @@ cpdef double score2(double[:] y, int t) nogil:
 
     cdef unordered_map[double, double].iterator left_it = count_left.begin()
     cdef unordered_map[double, double].iterator right_it = count_right.begin()
+
+    #print([y[i] for i in range(y.shape[0])])
 
     # Count all unique elements, store in hashmap
     for i in range(0, l_length):
@@ -59,91 +60,26 @@ cpdef double score2(double[:] y, int t) nogil:
         right_gini -= count
         postincrement(right_it)
 
-    gini = (l_length / length) * left_gini + (r_length / length) * right_gini
+    gini = (l_len_doub / length) * left_gini + (r_len_doub / length) * right_gini
     return gini
 
 @cython.boundscheck(False) #Deactivate bounds checking
 @cython.wraparound(False) #Deactivate negative indexing
-cpdef double score(double[:] y, int t):
+cpdef score_matrix(double[:, :] X, double[:] y, double node_impurity):
 
-    cdef double length = y.shape[0]
-    cdef double left_gini = 1.0
-    cdef double right_gini = 1.0
-    cdef double gini = 0
-    cdef int i = 0
-    cdef double temp = 0.0
-    cdef double count = 0.0
-    
-    cdef double[:] left = y[:t]
-    cdef double[:] right = y[t:]
-
-    cdef int l_length = left.shape[0]
-    cdef int r_length = right.shape[0]
-
-    # Sort the arrays
-    left = np.sort(left)
-    right = np.sort(right)
-
-    # Slower and wrong???
-    #qsort(&left[0], left.shape[0], left.strides[0], &cmpf)
-    #qsort(&right[0], right.shape[0], right.strides[0], &cmpf)
-
-    # Count unique elements
-    # And compute gini index
-    temp = left[0]
-    count = 1.0
-    for i in range(1, l_length):
-        if left[i] != temp:
-            count = count / l_length
-            count = count * count
-            left_gini = left_gini - count
-
-            count = 1.0
-            temp = left[i]
-
-        else:
-            count = count + 1
-
-    count = count / l_length
-    count = count * count
-    left_gini = left_gini - count
-
-    temp = right[0]
-    count = 1.0
-    for i in range(1, r_length):
-        if right[i] != temp:
-            count = count / r_length
-            count = count * count
-            right_gini = right_gini - count
-
-            count = 1.0
-            temp = right[i]
-
-        else:
-            count = count + 1
-
-    count = count / r_length
-    count = count * count
-    right_gini = right_gini - count
-
-    gini = (l_length / length) * left_gini + (r_length / length) * right_gini
-    return gini
-
-@cython.boundscheck(False) #Deactivate bounds checking
-@cython.wraparound(False) #Deactivate negative indexing
-cpdef double[:, :] score_matrix(double[:, :] X, double[:] y, double node_impurity,
-        int n_samples, int proj_dims):
-
+    cdef n_samples = X.shape[0]
+    cdef proj_dims = X.shape[1]
     cdef int i = 0
     cdef int j = 0
+    cdef long temp_int = 0;
 
-    Q = np.zeros((n_samples, proj_dims), dtype=DTYPE)
+    Q = np.zeros((n_samples, proj_dims), dtype=np.float64)
     cdef double[:, :] Q_view = Q
 
     idx = np.zeros(n_samples, dtype=np.int)
-    cdef int[:] idx_view = idx
+    cdef long[:] idx_view = idx
 
-    y_sort = np.zeros(n_samples, dtype=DTYPE)
+    y_sort = np.zeros(n_samples, dtype=np.float64)
     cdef double[:] y_sort_view = y_sort
 
     # No split = just impurity of the whole thing
@@ -151,11 +87,12 @@ cpdef double[:, :] score_matrix(double[:, :] X, double[:] y, double node_impurit
     Q_view[n_samples - 1, :] = node_impurity
 
     for j in range(0, proj_dims):
-        
+       
+        # Correct so far
         idx_view = np.argsort(X[:, j])
-        
         for i in range(0, n_samples):
-            y_sort_view[i] = y[idx_view[i]]
+            temp_int = idx_view[i]
+            y_sort_view[i] = y[temp_int]
 
         for i in range(1, n_samples - 1):
             Q_view[i, j] = score(y_sort_view, i)
