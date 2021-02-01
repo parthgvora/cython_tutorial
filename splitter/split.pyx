@@ -1,3 +1,4 @@
+#cython: language_level=3
 #cython: boundscheck=False
 #cython: wraparound=False
 
@@ -6,6 +7,7 @@ cimport cython
 import numpy as np
 
 from libcpp.unordered_map cimport unordered_map
+from libcpp.map cimport map as ordered_map
 from cython.operator import dereference, postincrement
 
 from cython.parallel import prange
@@ -15,8 +17,24 @@ from cython.parallel import prange
 
 cdef class BaseObliqueSplitter:
 
-    #    cdef int[:] argsort(self, double[:] y) nogil:
-    #    pass
+    cdef int[:] argsort(self, double[:] y):
+        cdef int length = y.shape[0]
+        cdef int[:] idx = np.zeros(length, dtype=np.intc)
+        cdef int i = 0
+        cdef ordered_map[double, int] sort_map
+        cdef ordered_map[double, int].iterator it = sort_map.begin()
+
+        for i in range(length):
+            sort_map[y[i]] = i
+
+        it = sort_map.begin()
+        i = 0
+        while it != sort_map.end():
+            idx[i] = dereference(it).second
+            i = i + 1
+            postincrement(it)
+
+        return idx    
 
     cdef (int, int) argmin(self, double[:, :] A) nogil:
         cdef int N = A.shape[0]
@@ -44,8 +62,8 @@ cdef class BaseObliqueSplitter:
         cdef double maximum = A[0]
 
         for i in range(N):
-            if A[i, j] > maximum:
-                maximum = A[i, j]
+            if A[i] > maximum:
+                maximum = A[i]
                 max_i = i
 
         return max_i
@@ -65,7 +83,7 @@ cdef class BaseObliqueSplitter:
             counts[temp] += 1
 
         it = counts.begin()
-        while (it != counts.end()):
+        while it != counts.end():
             temp = dereference(it).second
             temp = temp / dlength
             temp = temp * temp
@@ -105,8 +123,8 @@ cdef class BaseObliqueSplitter:
         Q = np.zeros((n_samples, proj_dims), dtype=np.float64)
         cdef double[:, :] Q_view = Q
 
-        idx = np.zeros(n_samples, dtype=np.int)
-        cdef long[:] idx_view = idx
+        idx = np.zeros(n_samples, dtype=np.intc)
+        cdef int[:] idx_view = idx
 
         y_sort = np.zeros(n_samples, dtype=np.float64)
         cdef double[:] y_sort_view = y_sort
@@ -119,7 +137,7 @@ cdef class BaseObliqueSplitter:
         for j in range(0, proj_dims):
        
             # Correct so far
-            idx_view = np.argsort(X[:, j])
+            idx_view = self.argsort(X[:, j])
             for i in range(0, n_samples):
                 temp_int = idx_view[i]
                 y_sort_view[i] = y[temp_int]
