@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import random as rng
 from proglearn.transformers import *
-from split import score_matrix
+from split import BaseObliqueSplitter as BOS
 from time import time
 
 from numpy.testing import assert_almost_equal
@@ -12,9 +12,12 @@ def numpy_Q(X, y, spl):
 
     Q = np.zeros((n, m))
     
-    # Ignoring cost of computing impurity
-    Q[0, :] = 1
-    Q[-1, :] = 1
+    # Impurity
+    unique, count = np.unique(y, return_counts=True)
+    count = count / n
+    gini = 1 - np.sum(np.power(count, 2))
+    Q[0, :] = gini
+    Q[-1, :] = gini
 
     for j in range(m):
 
@@ -26,13 +29,14 @@ def numpy_Q(X, y, spl):
     return Q
 
 def Cython_Q(X, y):
-    Q = score_matrix(X, y, 1)
+    B = BOS()
+    Q = B.score_matrix(X, y)
     return Q
 
 
 rng.seed(0)
-n = 100
-m = 100
+n = 1000
+m = 20
 
 numpy_time = 0
 cython_time = 0
