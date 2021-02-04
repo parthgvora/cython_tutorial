@@ -17,9 +17,8 @@ from cython.parallel import prange
 
 cdef class BaseObliqueSplitter:
 
-    cdef int[:] argsort(self, double[:] y):
+    cdef void argsort(self, double[:] y, int[:] idx) nogil:
         cdef int length = y.shape[0]
-        cdef int[:] idx = np.zeros(length, dtype=np.intc)
         cdef int i = 0
         cdef ordered_map[double, int] sort_map
         cdef ordered_map[double, int].iterator it = sort_map.begin()
@@ -33,8 +32,6 @@ cdef class BaseObliqueSplitter:
             idx[i] = dereference(it).second
             i = i + 1
             postincrement(it)
-
-        return idx    
 
     cdef (int, int) argmin(self, double[:, :] A) nogil:
         cdef int N = A.shape[0]
@@ -120,6 +117,10 @@ cdef class BaseObliqueSplitter:
         cdef long temp_int = 0;
         cdef double node_impurity = 0;
 
+        cdef int thresh_i = 0
+        cdef int feature = 0
+        cdef double best_gini = 0
+
         Q = np.zeros((n_samples, proj_dims), dtype=np.float64)
         cdef double[:, :] Q_view = Q
 
@@ -128,7 +129,13 @@ cdef class BaseObliqueSplitter:
 
         y_sort = np.zeros(n_samples, dtype=np.float64)
         cdef double[:] y_sort_view = y_sort
+        """
+        feat_vec = np.zeros(proj_dims, dtype=np.float64)
+        cdef double[:] feat_vec_view = feat_vec
 
+        feat_idx = np.zeros(proj_dims, dtype=np.intc) 
+        cdef int[:] feat_idx_view = feat_idx
+        """
         # No split = just impurity of the whole thing
         node_impurity = self.impurity(y)
         Q_view[0, :] = node_impurity
@@ -136,8 +143,7 @@ cdef class BaseObliqueSplitter:
 
         for j in range(0, proj_dims):
        
-            # Correct so far
-            idx_view = self.argsort(X[:, j])
+            self.argsort(X[:, j], idx_view)
             for i in range(0, n_samples):
                 temp_int = idx_view[i]
                 y_sort_view[i] = y[temp_int]
@@ -146,6 +152,10 @@ cdef class BaseObliqueSplitter:
                 Q_view[i, j] = self.score(y_sort_view, i)
 
         return Q
+        """
+        (thresh_i, feature) = self.argmin(Q)
+        best_gini = Q_view[thresh_i, feature]
 
+        return node_impurity, thresh_i, feature, best_gini
 
-
+        """

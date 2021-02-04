@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import random as rng
 from proglearn.transformers import *
-from split import score 
+from split import BaseObliqueSplitter as BOS 
 
 from time import time
 random_state = 0
@@ -40,7 +40,7 @@ for i in range(trials):
     sporf_time += (t2 - t1)
 
     t1 = time()
-    s2 = score(y, spos)
+    s2 = BOS.score(y, spos)
     t2 = time()
     cython_time += (t2 - t1)
 
