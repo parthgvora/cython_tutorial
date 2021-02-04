@@ -65,7 +65,7 @@ cdef class BaseObliqueSplitter:
 
         return max_i
 
-    cdef double impurity(self, double[:] y) nogil:
+    cdef inline double impurity(self, double[:] y) nogil:
         cdef int length = y.shape[0]
         cdef double dlength = y.shape[0]
         cdef double temp = 0
@@ -90,7 +90,7 @@ cdef class BaseObliqueSplitter:
 
         return gini
 
-    cdef double score(self, double[:] y, int t) nogil:
+    cdef inline double score(self, double[:] y, int t) nogil:
         cdef double length = y.shape[0]
         cdef double left_gini = 1.0
         cdef double right_gini = 1.0
