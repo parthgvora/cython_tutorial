@@ -6,7 +6,7 @@ N = [100, 200, 400, 800, 1600, 3200]
 d = 10
 reps = 5
 
-print("N,time")
+print(len(N), reps)
 
 for n in N:
 
@@ -21,8 +21,5 @@ for n in N:
         end_time = time()
 
         print(n, end_time - start_time)
-
-
-
 
 
