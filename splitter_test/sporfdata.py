@@ -63,7 +63,7 @@ def consistency(n):
 
 
 
-def sparse_parity(n, p=20, p_star=3):
+def sparse_parity(n, p=10, p_star=3):
 
     np.random.seed(12763123)
 

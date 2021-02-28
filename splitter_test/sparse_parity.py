@@ -35,9 +35,9 @@ def test_rf(n, reps, n_estimators):
 
     X_train, y_train, X_test, y_test = load_data(n)
 
-    clf = rfc(n_estimators=n_estimators,
-              projection_matrix="Base",
-              oob_score=False)
+    clf = rfc(n_estimators=n_estimators)
+            #projection_matrix="Base",
+            #oob_score=False)
               #max_features=10)
     clf.fit(X_train, y_train)
     
@@ -50,7 +50,7 @@ def test_rf(n, reps, n_estimators):
 
 def test_lcf(n, reps, n_estimators, feature_combinations, density):
 
-  preds = np.zeros((reps, 1000))
+  preds = np.zeros((reps, 10000))
   acc = np.zeros(reps)
   for i in range(reps):
 
