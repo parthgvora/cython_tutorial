@@ -9,8 +9,7 @@ from rerf.rerfClassifier import rerfClassifier as rfc
 
 def load_data(n):
 
-  ftrain = "Sparse_parity_test.csv"
-  ftest = "Sparse_parity_test.csv"
+  ftest = "data/Orthant_test.csv"
 
   #df_train = pd.read_csv(ftrain, header=None).to_numpy()
   df_test = pd.read_csv(ftest, header=None).to_numpy()
@@ -23,7 +22,7 @@ def load_data(n):
   X_test = df_test[:, :-1]
   y_test = df_test[:, -1]
 
-  X_train, y_train = sd.sparse_parity(n)
+  X_train, y_train = sd.orthant(n)
 
   return X_train, y_train, X_test, y_test
 
@@ -45,7 +44,7 @@ def test_rf(n, reps, n_estimators):
     preds[i] = clf.predict(X_test)
     acc[i] = np.sum(preds[i] == y_test) / len(y_test)
 
-  np.save("output/rf_sparse_parity_preds_" + str(n) + ".npy", preds)
+  np.save("output/rf_orthant_preds_" + str(n) + ".npy", preds)
   return acc
 
 def test_lcf(n, reps, n_estimators, feature_combinations, density):
@@ -66,13 +65,13 @@ def test_lcf(n, reps, n_estimators, feature_combinations, density):
     preds[i] = clf.predict(X_test, 0)
     acc[i] = np.sum(preds[i] == y_test) / len(y_test)
 
-  np.save("output/sparse_parity_preds_" + str(n) + ".npy", preds)
+  np.save("output/of_orthant_preds_" + str(n) + ".npy", preds)
   return acc
 
 
 def main():
 
-  n = 10000
+  n = 4000
   reps = 5
   n_estimators = 100
   feature_combinations = 1.5

@@ -77,16 +77,24 @@ def sparse_parity(n, p=10, p_star=3):
     np.random.seed(None)
     return X, y
 
-def orthant(n, p=6):
+def orthant(n, p=6, rec=1):
 
-    orth_labels = np.asarray([2 ** i for i in range(0, p)])
+    if rec == 10:
+        print("sample size too small")
+        sys.exit(0)
+
+    orth_labels = np.asarray([2 ** i for i in range(0, p)][::-1])
 
     X = np.random.uniform(-1, 1, (n, p))
     y = np.zeros(n)
 
     for i in range(0, n):
-        idx = np.where(X[i, :] < 0)[0]
+        idx = np.where(X[i, :] > 0)[0]
         y[i] = sum(orth_labels[idx])
+
+    # Careful not to stack overflow! 
+    if len(np.unique(y)) < 2 ** p:
+        X, y = orthant(n, p, rec+1)
 
     return X, y
 
