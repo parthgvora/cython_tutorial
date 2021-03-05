@@ -41,7 +41,7 @@ def test_rf(n, reps, n_estimators):
     np.save("output/rf_orthant_preds_" + str(n) + ".npy", preds)
     return acc
 
-def test_rerf(n, reps, n_estimators):
+def test_rerf(n, reps, n_estimators, feature_combinations, max_features):
 
     preds = np.zeros((reps, 10000))
     acc = np.zeros(reps)
@@ -50,7 +50,9 @@ def test_rerf(n, reps, n_estimators):
         X_train, y_train, X_test, y_test = load_data(n)
 
         clf = rfc(n_estimators=n_estimators, 
-                  projection_matrix="RerF")
+                  projection_matrix="RerF",
+                  feature_combinations=feature_combinations,
+                  max_features=max_features)
 
         clf.fit(X_train, y_train)
         
@@ -60,7 +62,7 @@ def test_rerf(n, reps, n_estimators):
     np.save("output/rerf_orthant_preds_" + str(n) + ".npy", preds)
     return acc
 
-def test_lcf(n, reps, n_estimators, feature_combinations, density):
+def test_lcf(n, reps, n_estimators, feature_combinations, max_features):
 
     preds = np.zeros((reps, 10000))
     acc = np.zeros(reps)
@@ -71,7 +73,7 @@ def test_lcf(n, reps, n_estimators, feature_combinations, density):
         clf = lcf(default_n_estimators=n_estimators,
                   oblique=True,
                   default_feature_combinations=feature_combinations,
-                  default_density=density
+                  default_max_features=max_features
               )
 
         clf.add_task(X_train, y_train)
@@ -87,9 +89,9 @@ def main():
     reps = 5
     n_estimators = 100
     feature_combinations = 1.5
-    density = 0.4
+    max_features = 0.4
 
-    #acc = test_lcf(n, reps, n_estimators, feature_combinations, density)
+    #acc = test_lcf(n, reps, n_estimators, feature_combinations, max_features)
     acc = test_rf(n, reps, n_estimators)
     print(acc)
 
