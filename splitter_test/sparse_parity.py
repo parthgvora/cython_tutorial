@@ -8,8 +8,8 @@ from rerf.rerfClassifier import rerfClassifier as rfc
 
 def load_data(n):
 
-    ftrain = "sparse_parity_train_" + str(i) + ".npy"
-    ftest = "sparse_parity_test.npy"
+    ftrain = "data/sparse_parity_train_" + str(n) + ".npy"
+    ftest = "data/sparse_parity_test.npy"
 
     dftrain = np.load(ftrain)
     dftest = np.load(ftest)
@@ -86,13 +86,14 @@ def test_lcf(n, reps, n_estimators, feature_combinations, max_features):
 def main():
 
     n = 10000
-    reps = 5
+    reps = 3
     n_estimators = 100
-    feature_combinations = 1.5
-    max_features = 0.4
+    feature_combinations = 2 
+    max_features = 1.0
 
     #acc = test_lcf(n, reps, n_estimators, feature_combinations, max_features)
-    acc = test_rf(n, reps, n_estimators)
+    acc = test_rerf(n, reps, n_estimators, feature_combinations, max_features)
+    #acc = test_rf(n, reps, n_estimators)
     print(acc)
 
 if __name__ == "__main__":
