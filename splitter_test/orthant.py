@@ -1,85 +1,97 @@
 import sys
 import numpy as np
 import pandas as pd
-import sporfdata as sd
+
 #from proglearn import LifelongClassificationForest as lcf
-#from sklearn.ensemble import RandomForestClassifier as rfc
 
 from rerf.rerfClassifier import rerfClassifier as rfc
 
 def load_data(n):
 
-  ftest = "data/Orthant_test.csv"
+    ftrain = "orthant_train_" + str(i) + ".npy"
+    ftest = "orthant_test.npy"
 
-  #df_train = pd.read_csv(ftrain, header=None).to_numpy()
-  df_test = pd.read_csv(ftest, header=None).to_numpy()
+    dftrain = np.load(ftrain)
+    dftest = np.load(ftest)
 
-  #idx = np.random.choice(10000, n, replace=False)
+    X_train = dftrain[:, :-1]
+    y_train = dftrain[:, -1]
 
-  #X_train = df_train[idx, :-1]
-  #y_train = df_train[idx, -1]
-
-  X_test = df_test[:, :-1]
-  y_test = df_test[:, -1]
-
-  X_train, y_train = sd.orthant(n)
-
-  return X_train, y_train, X_test, y_test
+    X_test = dftest[:, :-1]
+    y_test = dftest[:, -1]
+    
+    return X_train, y_train, X_test, y_test
 
 def test_rf(n, reps, n_estimators):
 
-  preds = np.zeros((reps, 10000))
-  acc = np.zeros(reps)
-  for i in range(reps):
+    preds = np.zeros((reps, 10000))
+    acc = np.zeros(reps)
+    for i in range(reps):
 
-    X_train, y_train, X_test, y_test = load_data(n)
+        X_train, y_train, X_test, y_test = load_data(n)
 
-    clf = rfc(n_estimators=n_estimators)
-            #projection_matrix="Base",
-            #oob_score=False)
-              #max_features=10)
-    clf.fit(X_train, y_train)
-    
-    
-    preds[i] = clf.predict(X_test)
-    acc[i] = np.sum(preds[i] == y_test) / len(y_test)
+        clf = rfc(n_estimators=n_estimators, 
+                  projection_matrix="Base")
 
-  np.save("output/rf_orthant_preds_" + str(n) + ".npy", preds)
-  return acc
+        clf.fit(X_train, y_train)
+        
+        preds[i] = clf.predict(X_test)
+        acc[i] = np.sum(preds[i] == y_test) / len(y_test)
+
+    np.save("output/rf_orthant_preds_" + str(n) + ".npy", preds)
+    return acc
+
+def test_rerf(n, reps, n_estimators):
+
+    preds = np.zeros((reps, 10000))
+    acc = np.zeros(reps)
+    for i in range(reps):
+
+        X_train, y_train, X_test, y_test = load_data(n)
+
+        clf = rfc(n_estimators=n_estimators, 
+                  projection_matrix="RerF")
+
+        clf.fit(X_train, y_train)
+        
+        preds[i] = clf.predict(X_test)
+        acc[i] = np.sum(preds[i] == y_test) / len(y_test)
+
+    np.save("output/rerf_orthant_preds_" + str(n) + ".npy", preds)
+    return acc
 
 def test_lcf(n, reps, n_estimators, feature_combinations, density):
 
-  preds = np.zeros((reps, 10000))
-  acc = np.zeros(reps)
-  for i in range(reps):
+    preds = np.zeros((reps, 10000))
+    acc = np.zeros(reps)
+    for i in range(reps):
 
-    X_train, y_train, X_test, y_test = load_data(n)
+        X_train, y_train, X_test, y_test = load_data(n)
 
-    clf = lcf(default_n_estimators=n_estimators,
-              oblique=True,
-              default_feature_combinations=feature_combinations,
-              default_density=density
+        clf = lcf(default_n_estimators=n_estimators,
+                  oblique=True,
+                  default_feature_combinations=feature_combinations,
+                  default_density=density
               )
 
-    clf.add_task(X_train, y_train)
-    preds[i] = clf.predict(X_test, 0)
-    acc[i] = np.sum(preds[i] == y_test) / len(y_test)
+        clf.add_task(X_train, y_train)
+        preds[i] = clf.predict(X_test, 0)
+        acc[i] = np.sum(preds[i] == y_test) / len(y_test)
 
-  np.save("output/of_orthant_preds_" + str(n) + ".npy", preds)
-  return acc
-
+    np.save("output/lcf_orthant_preds_" + str(n) + ".npy", preds)
+    return acc
 
 def main():
 
-  n = 4000
-  reps = 5
-  n_estimators = 100
-  feature_combinations = 1.5
-  density = 0.4
+    n = 10000
+    reps = 5
+    n_estimators = 100
+    feature_combinations = 1.5
+    density = 0.4
 
-  #acc = test_lcf(n, reps, n_estimators, feature_combinations, density)
-  acc = test_rf(n, reps, n_estimators)
-  print(acc)
+    #acc = test_lcf(n, reps, n_estimators, feature_combinations, density)
+    acc = test_rf(n, reps, n_estimators)
+    print(acc)
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -58,14 +58,12 @@ def consistency(n):
 
             X[i] += 2
     
-    np.random.seed(None)
+    #np.random.seed(None)
     return X, y
 
+def sparse_parity(n, p=20, p_star=3):
 
-
-def sparse_parity(n, p=10, p_star=3):
-
-    np.random.seed(12763123)
+    #np.random.seed(12763123)
 
     X = np.random.uniform(-1, 1, (n, p))
     y = np.zeros(n)
@@ -74,7 +72,7 @@ def sparse_parity(n, p=10, p_star=3):
         y[i] = sum(X[i, :p_star] > 0) % 2;
 
 
-    np.random.seed(None)
+    #np.random.seed(None)
     return X, y
 
 def orthant(n, p=6, rec=1):
